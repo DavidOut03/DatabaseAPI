@@ -69,17 +69,32 @@ public class MongoDatabase extends Database {
         HashMap<String, List<Object>> returned = new HashMap<>();
 
         for (Document document : result) {
-            document.forEach((key, value) -> {
-                if (returned.containsKey(key)) {
-                    returned.get(key).add(value);
-                    return;
-                }
+            addColumns(returned, document.keySet());
 
-                returned.put(key, new ArrayList<>(Collections.singleton(value)));
+            returned.forEach((column, values) -> {
+                Object docValue = document.getOrDefault(column, null);
+                addValue(returned, column, docValue);
             });
+
         }
 
         return returned;
+    }
+
+    private void addColumns(HashMap<String, List<Object>> map, Set<String> columns) {
+        columns.forEach(s -> {
+            if(map.containsKey(s)) return;
+            map.put(s, new ArrayList<>());
+        });
+    }
+
+    private void addValue(HashMap<String, List<Object>> map, String col, Object value) {
+        if(map.containsKey(col)) {
+            map.get(col).add(value);
+            return;
+        }
+
+        map.put(col, Collections.singletonList(value));
     }
 
 }
